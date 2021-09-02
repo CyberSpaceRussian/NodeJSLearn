@@ -1,21 +1,16 @@
-const log = require('./logger')(module);
-const db = require('./db');
-db.connect();
+const http = require('http');
 
-const User = require('./user/index');
+var server = new http.Server();
 
-function run() {
-    var Vasya = new User("Vasya");
-    var Petya = new User("Petya");
+server.listen(1337, '127.0.0.1');
 
-    Vasya.hello(Petya);
+let counter = 0;
 
-    log(db.getPhrase("Run successful"));
+let emit = server.emit;
+server.emit = function(event){
+    console.log(event);
+    emit.apply(server, arguments);
 }
-
-
-if (module.parent) {
-    exports.run = run;
-} else {
-    run();
-}
+server.on('request', function(req, res){
+    res.end("Hello, world!" + ++counter);
+});
