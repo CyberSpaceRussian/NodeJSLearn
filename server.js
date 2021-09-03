@@ -1,16 +1,25 @@
 const http = require('http');
+// const { waitForDebugger } = require('inspector');
+// const url = require('url');
+const fs = require('fs');
 
-var server = new http.Server();
+let server = new http.Server();
 
-server.listen(1337, '127.0.0.1');
+server.on ('request', function (req, res) {
 
-let counter = 0;
-
-let emit = server.emit;
-server.emit = function(event){
-    console.log(event);
-    emit.apply(server, arguments);
-}
-server.on('request', function(req, res){
-    res.end("Hello, world!" + ++counter);
+    if (req.url == '/') {
+        fs.readFile('index.html', function (err, info) {
+            if (err) {
+                console.error(err);
+                res.statusCode = 500;
+                res.end("Server error");
+                return;
+            }
+            res.end(info);
+        }); 
+    } else {}       
+      
 });
+
+server.listen(3000);
+
