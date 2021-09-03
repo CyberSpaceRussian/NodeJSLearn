@@ -1,33 +1,66 @@
 const http = require('http');
 // const { waitForDebugger } = require('inspector');
-// const url = require('url');
+const url = require('url');
 const fs = require('fs');
+const path = require('path');
 
-let server = new http.Server();
+let ROOT = __dirname + "/public";
 
-server.on ('request', function (req, res) {
+http.createServer(function (req, res) {
+    if (!checkAccess(req)) {
+        res.statusCode = 403;
+        res.end("Tell me secret to access!");
+        return;
+    }
+    sendFileSafe(url.parse(req.url).pathname, res);
 
-    if (req.url == '/') {
-        fs.readFile('index.html', function (err, info) {
-            if (err) {
-                console.error(err);
-                res.statusCode = 500;
-                res.end("Server error");
-                return;
-            }
-            res.end(info);
-        }); 
-    } else {}       
-      
-});
-setTimeout(function () {
-    server.close();
-},2500);
-let timer = setInterval(() => {
-    console.log(process.memoryUsage());
-}, 1000);
+}).listen(3000);
 
+function checkAccess(req) {
+    return url.parse(req.url, true).query.secret == 'o_O';
+}
 
-timer.unref();
-server.listen(3000);
+function sendFileSafe(filePath, res) {
+    
+    try {
+        filePath = decodeURIComponent(filePath);
+    } catch(e) {
+        res.statusCode = 400;
+        res.end("Bad Request");
+        return;
+    }
+    if (~filePath.indexOf('\0')) {
+        res.statusCode = 400;
+        res.end("Bad Request");
+        return;
+    }
 
+    filePath = path.normalize(path.join(ROOT, filePath));
+
+    if (filePath.indexOf(ROOT) != 0) {
+        res.statusCode = 404;
+        res.end("File not found");
+        return;
+    }
+    fs.stat(filePath, function (err, stats) {
+        if (err || !stats.isFile()) {
+            res.statusCode = 404;
+            res.end("File not found");
+            return;
+        }
+    sendFile(filePath, res);
+    });
+}
+
+function sendFile(filePath, res) {
+    
+fs.readFile(filePath, function (err, content) {
+    if (err) throw err;
+
+    let mime = require('mime').lookup(filePath);
+    res.setHeader('Content-Type', mime + "; charset=utf-8");
+    res.end (content);
+}) ;
+    
+}
+ 
