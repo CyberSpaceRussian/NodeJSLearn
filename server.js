@@ -4,7 +4,7 @@ const url = require('url');
 const fs = require('fs');
 const path = require('path');
 
-let ROOT = __dirname + "/public";
+let ROOT = __dirname + "\\public";
 
 http.createServer(function (req, res) {
     if (!checkAccess(req)) {
@@ -39,13 +39,13 @@ function sendFileSafe(filePath, res) {
 
     if (filePath.indexOf(ROOT) != 0) {
         res.statusCode = 404;
-        res.end("File not found");
+        res.end("File not found1");
         return;
     }
     fs.stat(filePath, function (err, stats) {
         if (err || !stats.isFile()) {
             res.statusCode = 404;
-            res.end("File not found");
+            res.end("File not found2");
             return;
         }
     sendFile(filePath, res);
@@ -57,7 +57,7 @@ function sendFile(filePath, res) {
 fs.readFile(filePath, function (err, content) {
     if (err) throw err;
 
-    let mime = require('mime').lookup(filePath);
+    let mime = require('mime').getType(filePath);
     res.setHeader('Content-Type', mime + "; charset=utf-8");
     res.end (content);
 }) ;
