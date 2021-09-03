@@ -20,6 +20,14 @@ server.on ('request', function (req, res) {
     } else {}       
       
 });
+setTimeout(function () {
+    server.close();
+},2500);
+let timer = setInterval(() => {
+    console.log(process.memoryUsage());
+}, 1000);
 
+
+timer.unref();
 server.listen(3000);
 
